@@ -72,11 +72,11 @@ td_model.compile(
 #%%
 ''' train the TDBP '''
 
-for lr in [.01,.001]:
+for lr in [.05,.01,.005,.001]:
     td_model.fit(
         walks_with_time, 
         payoffs, 
-        epochs = 10,
+        epochs = 15,
         lr = lr,
         lamb = 0.1,
         batch_size = 1,
@@ -85,11 +85,24 @@ for lr in [.01,.001]:
 #%%
 ''' plot preds '''
 
-pred = td_model.predict( [[100,0]]).numpy()
+def plot_pred( t, spot, ax ):
+    
+    if ax is None:
+        _,ax = plt.subplots()
+        
+    pred = td_model.predict( [[spot,walk_steps*t/T]]).numpy()
+    
+    ax.plot(
+        np.linspace( *histogram_range, histogram_bins ), 
+        np.squeeze( pred ), 
+        label = "E[Price at t=%0.2f] | t=%0.2f, s_t = %0.2f" % (T, t, spot) 
+    )
+    
+    ax.legend(loc="best",fontsize=10)
+    
+    return ax
 
-spot_space = np.linspace(80,120,50)
-for t in [0,int(walk_steps/2), int(walk_steps)]:
-    pred_space = np.stack([spot_space , np.repeat(t,len(spot_space))]).T
-    prediction = td_model.predict(pred_space).numpy()
-    plt.plot( spot_space, np.squeeze( prediction ), 
-             label = "Prediction at t=%0.2f" % (T * t / walk_steps) )
+ax = None
+ax = plot_pred(0 /255, 100, ax)
+ax = plot_pred(30 /255, 100, ax)
+
